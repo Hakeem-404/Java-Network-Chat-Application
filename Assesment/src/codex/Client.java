@@ -64,7 +64,7 @@ public class Client {
                 if (line.startsWith("SUBMITNAME")) {
                     out.println(screenName);
                 } else if (line.startsWith("NAMEACCEPTED")) {
-                    this.frame.setTitle("Chatter Co-ordinator: " + screenName + " " + id );
+                    this.frame.setTitle("Chatter: " + screenName + " " + id );
                     textField.setEditable(true);
                 } else if (line.startsWith("MESSAGE")) {
                     messageArea.append(line.substring(8) + "\n");

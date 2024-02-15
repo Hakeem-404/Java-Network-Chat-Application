@@ -13,6 +13,7 @@ public class Server {
 
     private static Set<String> names = new HashSet<>();
     private static Set<PrintWriter> writers = new HashSet<>();
+    private static PrintWriter coordinatorWriter = null; // sets default coordinator to zero or null
 
     public static void main(String[] args) throws Exception {
         System.out.println("The chat server is running...");
@@ -29,6 +30,8 @@ public class Server {
         private Socket socket;
         private Scanner in;
         private PrintWriter out;
+        private boolean isFirstClient;
+        private boolean isCoordinator;
 
         public Handler(Socket socket) {
             this.socket = socket;
@@ -38,12 +41,10 @@ public class Server {
             try {
                 in = new Scanner(socket.getInputStream());
                 out = new PrintWriter(socket.getOutputStream(), true);
-                
-                boolean isFirstClient = false;
+
                 synchronized (names) {
-                    if (names.isEmpty()) {
-                        isFirstClient = true;
-                    }
+                    isFirstClient = names.isEmpty();
+                    isCoordinator = coordinatorWriter == null; // Check if the client is the first connected client
                 }
 
                 while (true) {
@@ -61,22 +62,25 @@ public class Server {
                 }
                 
                 out.println("NAMEACCEPTED " + name);
-             // Notify the new client (except the first client) about the currently connected clients
-                if (!isFirstClient) {
-                	for (String connectedClient : names) {
-                		// Skip sending the current user's name
-                        if (!connectedClient.equals(name)) {
-                            out.println("MESSAGE " + connectedClient + " is online");
-                        }
 
+                // Check if the client is the first connected client and Notify the new client that they are the coordinator
+                if (isCoordinator) {
+					coordinatorWriter = out;
+                    out.println("MESSAGE You are the coordinator");
+                }
+                 
+                // Notify the new client about the currently connected clients
+                for (String connectedClient : names) {
+                    // Skip sending the current user's name
+                    if (!connectedClient.equals(name)) {
+                        out.println("MESSAGE " + connectedClient + " is online");
                     }
                 }
-                
 
                 // Notify all clients that a new client has joined, including the screen name
                 for (PrintWriter writer : writers) {
                     writer.println("MESSAGE " + name + " has joined");
-                } 
+                }
                 writers.add(out);
 
                 while (true) {
@@ -97,6 +101,18 @@ public class Server {
                 if (name != null) {
                     System.out.println(name + " is leaving");
                     names.remove(name);
+                    
+                 // If the leaving client is the coordinator, choose a new coordinator
+                    if (isCoordinator) {
+                        synchronized (names) {
+                            coordinatorWriter = null; // returns coordinator to default, which is null
+                            if (!writers.isEmpty()) {
+                                // Choose a random client to be the new coordinator
+                                coordinatorWriter = writers.iterator().next();
+                                coordinatorWriter.println("MESSAGE You are the new coordinator");
+                            }
+                        }
+                    }
                     for (PrintWriter writer : writers) {
                         writer.println("MESSAGE " + name + " has left");
                     }
