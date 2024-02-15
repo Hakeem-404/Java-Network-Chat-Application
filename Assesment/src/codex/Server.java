@@ -38,6 +38,13 @@ public class Server {
             try {
                 in = new Scanner(socket.getInputStream());
                 out = new PrintWriter(socket.getOutputStream(), true);
+                
+                boolean isFirstClient = false;
+                synchronized (names) {
+                    if (names.isEmpty()) {
+                        isFirstClient = true;
+                    }
+                }
 
                 while (true) {
                     out.println("SUBMITNAME");
@@ -52,11 +59,24 @@ public class Server {
                         }
                     }
                 }
-
+                
                 out.println("NAMEACCEPTED " + name);
+             // Notify the new client (except the first client) about the currently connected clients
+                if (!isFirstClient) {
+                	for (String connectedClient : names) {
+                		// Skip sending the current user's name
+                        if (!connectedClient.equals(name)) {
+                            out.println("MESSAGE " + connectedClient + " is online");
+                        }
+
+                    }
+                }
+                
+
+                // Notify all clients that a new client has joined, including the screen name
                 for (PrintWriter writer : writers) {
                     writer.println("MESSAGE " + name + " has joined");
-                }
+                } 
                 writers.add(out);
 
                 while (true) {
