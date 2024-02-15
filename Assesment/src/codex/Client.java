@@ -53,9 +53,12 @@ public class Client {
             while (in.hasNextLine()) {
                 String line = in.nextLine();
                 if (line.startsWith("SUBMITNAME")) {
-                    out.println(id);
+                    out.println(
+                    		"ID: "+ id + "\n" + 
+                    		"IP Address: " + serverAddress + "\n" + 
+                    		"Port: " + port);
                 } else if (line.startsWith("NAMEACCEPTED")) {
-                    this.frame.setTitle("Chatter - " + id );
+                    this.frame.setTitle("Chatter Co-ordinator: " + id );
                     textField.setEditable(true);
                 } else if (line.startsWith("MESSAGE")) {
                     messageArea.append(line.substring(8) + "\n");

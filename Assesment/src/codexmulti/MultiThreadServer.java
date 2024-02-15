@@ -56,8 +56,6 @@ public class MultiThreadServer {
                 }
             }
         }
-        
-
 
         private void broadcastMessage(String message) {
             for (PrintWriter writer : clientWriters) {
