@@ -19,6 +19,7 @@ public class ClientHandler extends Thread {
         this.clientSocket = socket;
     }
 
+    @Override
     public void run() {
         try {
             out = new PrintWriter(clientSocket.getOutputStream(), true);

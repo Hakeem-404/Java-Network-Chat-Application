@@ -10,11 +10,10 @@ import java.util.Scanner;
 import java.util.concurrent.*;
 
 public class Server {
-    private static final int PORT = 59001;
 
     public static void main(String[] args) throws IOException {
         System.out.println("The chat server is running...");
-        try (ServerSocket listener = new ServerSocket(PORT)) {
+        try (ServerSocket listener = new ServerSocket(59001)) {
             while (true) {
                 Socket clientSocket = listener.accept();
                 System.out.println("New client connected: " + clientSocket);
@@ -24,3 +23,4 @@ public class Server {
         }
     }
 }
+

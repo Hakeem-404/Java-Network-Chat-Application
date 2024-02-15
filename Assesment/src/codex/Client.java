@@ -43,8 +43,18 @@ public class Client {
             }
         });
     }
+    
+    private String getName() {
+        return JOptionPane.showInputDialog(
+            frame,
+            "Choose a screen name:",
+            "Screen name selection",
+            JOptionPane.PLAIN_MESSAGE
+        );
+    }
 
     private void run() throws IOException {
+    	String screenName = getName();
         try (Socket socket = new Socket(serverAddress, Integer.parseInt(port))) {
             in = new Scanner(socket.getInputStream());
             out = new PrintWriter(socket.getOutputStream(), true);
@@ -53,12 +63,9 @@ public class Client {
             while (in.hasNextLine()) {
                 String line = in.nextLine();
                 if (line.startsWith("SUBMITNAME")) {
-                    out.println(
-                    		"ID: "+ id + "\n" + 
-                    		"IP Address: " + serverAddress + "\n" + 
-                    		"Port: " + port);
+                    out.println(screenName);
                 } else if (line.startsWith("NAMEACCEPTED")) {
-                    this.frame.setTitle("Chatter Co-ordinator: " + id );
+                    this.frame.setTitle("Chatter Co-ordinator: " + screenName + " " + id );
                     textField.setEditable(true);
                 } else if (line.startsWith("MESSAGE")) {
                     messageArea.append(line.substring(8) + "\n");
