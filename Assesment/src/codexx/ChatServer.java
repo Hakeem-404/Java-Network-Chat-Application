@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Set;
 import java.util.HashSet;
 import java.util.Scanner;
-import java.util.concurrent.*;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class Server {
+public class ChatServer {
 
     private static Set<String> names = new HashSet<>();
     private static Set<PrintWriter> writers = new HashSet<>();
@@ -71,7 +72,9 @@ public class Server {
                 for (String connectedClient : names) {
                     // Skip sending the current user's name
                     if (!connectedClient.equals(name)) {
-                    	out.println("MESSAGE " + connectedClient + " is online");
+                        String connectedId = findId(connectedClient);
+                        String connectedScreenName = connectedClient;
+                        out.println("MESSAGE " + connectedId + " (screen name: " + connectedScreenName + ") is online");
                     }
                 }
 
@@ -106,9 +109,8 @@ public class Server {
                 }
                 if (name != null) {
                     System.out.println(name + " is leaving");
-                    names.remove(name);
 
-                    // If the leaving client is the coordinator, choose a new coordinator
+                 // If the leaving client is the coordinator, choose a new coordinator
                     if (isCoordinator) {
                         synchronized (names) {
                             coordinatorWriter = null; // returns coordinator to default, which is null
@@ -130,7 +132,12 @@ public class Server {
             }
         }
 
-        private void sendPrivateMessage(String sender, String recipient, String message) {
+        private String findId(String connectedClient) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		private void sendPrivateMessage(String sender, String recipient, String message) {
             for (PrintWriter writer : writers) {
                 writer.println("PRIVATE " + sender + " " + recipient + " " + message);
             }
