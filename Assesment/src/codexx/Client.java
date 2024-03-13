@@ -38,15 +38,14 @@ public class Client {
         textField.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String message = textField.getText();
-                if (message.startsWith("@")) { // Modified to use '@' as the prefix for private messages
+                if (message.startsWith("@")) {
                     String[] parts = message.split(" ", 2);
                     if (parts.length == 2) {
-                        out.println("PRIVATE " + parts[0].substring(1) + " " + parts[1]); // Sending private message command to server
+                        out.println("PRIVATE " + parts[0].substring(1) + " " + parts[1]);
                     } else {
                         messageArea.append("Invalid format. Usage: @[name] [message]\n");
                     }
                 } else {
-                    // Handle normal messages (broadcast to everyone)
                     out.println("MESSAGE " + message);
                 }
                 textField.setText("");
@@ -75,7 +74,7 @@ public class Client {
                 if (line.startsWith("SUBMITNAME")) {
                     out.println(screenName);
                 } else if (line.startsWith("NAMEACCEPTED")) {
-                    this.frame.setTitle("Chatter: " + "Name: " + screenName + ", ID: " + id);
+                    frame.setTitle("Chatter: " + "Name: " + screenName + ", ID: " + id);
                     textField.setEditable(true);
                 } else if (line.startsWith("MESSAGE")) {
                     messageArea.append(line.substring(8) + "\n");
@@ -87,7 +86,7 @@ public class Client {
                     if (id.equals(recipient)) {
                         messageArea.append("private message: [" + sender + " -> " + recipient + "]: "  + message + "\n");
                     } else if (id.equals(sender)) {
-                        messageArea.append("[" + sender + " -> " + recipient + "]: "  + message + "\n");
+                        messageArea.append("[" + sender + " -> "+ recipient + "]: "  + message + "\n");
                     }
                 }
 
