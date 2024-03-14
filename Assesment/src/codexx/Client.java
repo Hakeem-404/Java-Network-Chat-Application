@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 import java.awt.BorderLayout;
 import javax.swing.JFrame;
@@ -46,7 +48,11 @@ public class Client {
                         messageArea.append("Invalid format. Usage: @[name] [message]\n");
                     }
                 } else {
-                    out.println("MESSAGE " + message);
+                	// Get the current time
+                    LocalDateTime now = LocalDateTime.now();
+                    String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+                    out.println("[" + time + "] " +  "MESSAGE:- " + message);
                 }
                 textField.setText("");
             }
@@ -74,7 +80,7 @@ public class Client {
                 if (line.startsWith("SUBMITNAME")) {
                     out.println(screenName);
                 } else if (line.startsWith("NAMEACCEPTED")) {
-                    frame.setTitle("Chatter: " + "Name: " + screenName + ", ID: " + id);
+                    frame.setTitle("Name: " + screenName + "  ID: " + id);
                     textField.setEditable(true);
                 } else if (line.startsWith("MESSAGE")) {
                     messageArea.append(line.substring(8) + "\n");
@@ -84,9 +90,13 @@ public class Client {
                     String recipient = parts[2];
                     String message = parts[3];
                     if (id.equals(recipient)) {
-                        messageArea.append("private message: [" + sender + " -> " + recipient + "]: "  + message + "\n");
+                    	LocalDateTime now = LocalDateTime.now();
+                        String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                        messageArea.append("[" + time + "] " + "private message: [" + sender + " -> " + recipient + "]: "  + message + "\n");
                     } else if (id.equals(sender)) {
-                        messageArea.append("[" + sender + " -> "+ recipient + "]: "  + message + "\n");
+                    	LocalDateTime now = LocalDateTime.now();
+                        String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                        messageArea.append("[" + time + "] " + "[" + sender + " -> "+ recipient + "]: "  + message + "\n");
                     }
                 }
 

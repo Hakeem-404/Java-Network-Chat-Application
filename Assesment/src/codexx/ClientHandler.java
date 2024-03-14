@@ -7,20 +7,24 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.HashSet;
 
-public class ClientHandler implements Runnable {
+public class ClientHandler implements Runnable, Observer {
     private String name;
     private Socket socket;
     private Scanner in;
     private PrintWriter out;
+    private Server server;
     private boolean isCoordinator;
     private static Set<String> names = new HashSet<>();
     private static Set<PrintWriter> writers = new HashSet<>();
     private static PrintWriter coordinatorWriter = null;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, Server server) {
         this.socket = socket;
+        this.server = server;
+        server.register(this);
     }
 
+    @Override
     public void run() {
         try {
             in = new Scanner(socket.getInputStream());
@@ -62,7 +66,7 @@ public class ClientHandler implements Runnable {
             }
             writers.add(out);
 
-            while (true) {
+            while (true){
                 String input = in.nextLine();
                 if (input.toLowerCase().startsWith("/quit")) {
                     return;
@@ -96,14 +100,16 @@ public class ClientHandler implements Runnable {
                         }
                     }
                 }
+                // Notify other clients about the leaving client including their name
                 for (PrintWriter writer : writers) {
-                    writer.println("MESSAGE" + name + " has left");
+                    writer.println("MESSAGE " + name + " has left");
                 }
             }
             try {
                 socket.close();
             } catch (IOException e) {
             }
+            server.unregister(this); // Unregister the client handler from the server
         }
     }
 
@@ -111,5 +117,10 @@ public class ClientHandler implements Runnable {
         for (PrintWriter writer : writers) {
             writer.println("PRIVATE " + sender + " " + recipient + " " + message);
         }
+    }
+
+    @Override
+    public void update(String message) {
+        out.println("MESSAGE " + message);
     }
 }
