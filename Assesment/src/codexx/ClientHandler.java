@@ -3,6 +3,8 @@ package codexx;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.HashSet;
@@ -13,6 +15,8 @@ public class ClientHandler implements Runnable, Observer {
     private Scanner in;
     private PrintWriter out;
     private Server server;
+    private String serverAddress;
+    private String port; 
     private boolean isCoordinator;
     private static Set<String> names = new HashSet<>();
     private static Set<PrintWriter> writers = new HashSet<>();
@@ -21,6 +25,8 @@ public class ClientHandler implements Runnable, Observer {
     public ClientHandler(Socket socket, Server server) {
         this.socket = socket;
         this.server = server;
+        this.serverAddress = socket.getInetAddress().getHostAddress();
+        this.port = String.valueOf(socket.getLocalPort());
         server.register(this);
     }
 
@@ -44,31 +50,34 @@ public class ClientHandler implements Runnable, Observer {
                     if (!name.isEmpty() && !names.contains(name)) {
                         names.add(name);
                         break;
-                    }
+                    } 
                 }
             }
 
             out.println("NAMEACCEPTED " + name);
-
             if (isCoordinator) {
                 coordinatorWriter = out;
                 out.println("MESSAGE You are the coordinator");
-            }
-
-            for (String connectedClient : names) {
-                if (!connectedClient.equals(name)) {
-                    out.println("MESSAGE " + connectedClient + " is online");
-                }
+                
             }
 
             for (PrintWriter writer : writers) {
-                writer.println("MESSAGE " + name + " has joined");
+            	LocalDateTime now = LocalDateTime.now();
+                String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                writer.println("MESSAGE [" + time + "] " + name + " has joined");
             }
             writers.add(out);
 
             while (true){
                 String input = in.nextLine();
-                if (input.toLowerCase().startsWith("/quit")) {
+                if (input.equalsIgnoreCase("members")){
+                	out.println("MESSAGE Online members: \n");
+                	for (String onlineMember : names) {
+                        if (!onlineMember.equals(name)) {
+                            out.println("MESSAGE" + onlineMember + " IP Address: " + serverAddress + " port: " + port);
+                        }
+                    }
+                } else if (input.toLowerCase().startsWith("/quit")) {
                     return;
                 } else if (input.startsWith("PRIVATE")) {
                     String[] parts = input.split(" ", 3);
@@ -77,7 +86,9 @@ public class ClientHandler implements Runnable, Observer {
                     }
                 } else {
                     for (PrintWriter writer : writers) {
-                        writer.println("MESSAGE " + name + ": " + input);
+                    	LocalDateTime now = LocalDateTime.now();
+                        String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                        writer.println("MESSAGE [" + time + "] " + name + ": " + input);
                     }
                 }
             }
@@ -102,7 +113,10 @@ public class ClientHandler implements Runnable, Observer {
                 }
                 // Notify other clients about the leaving client including their name
                 for (PrintWriter writer : writers) {
-                    writer.println("MESSAGE " + name + " has left");
+                	LocalDateTime now = LocalDateTime.now();
+                    String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    writer.println("MESSAGE [" + time + "] " + name + " has left");
+                    
                 }
             }
             try {

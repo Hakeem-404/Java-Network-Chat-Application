@@ -3,11 +3,12 @@ package codexx;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Server implements Subject {
 
-    private List<Observer> observers = new ArrayList<>();
+    private final List<Observer> observers = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         System.out.println("The chat server is running...");
@@ -17,6 +18,11 @@ public class Server implements Subject {
             while (true) {
                 pool.execute(new ClientHandler(listener.accept(), server));
             }
+        } catch (Exception e) {
+            System.out.println("Server exception: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            pool.shutdown();
         }
     }
 
@@ -36,4 +42,6 @@ public class Server implements Subject {
             observer.update(message);
         }
     }
+    
+    
 }
