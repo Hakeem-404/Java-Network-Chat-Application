@@ -77,7 +77,7 @@ public class ClientHandler implements Runnable, Observer {
                             out.println("MESSAGE" + onlineMember + " IP Address: " + serverAddress + " port: " + port);
                         }
                     }
-                } else if (input.toLowerCase().startsWith("/quit")) {
+                } else if (input == null || input.toLowerCase().startsWith("/quit")) {
                     return;
                 } else if (input.startsWith("PRIVATE")) {
                     String[] parts = input.split(" ", 3);

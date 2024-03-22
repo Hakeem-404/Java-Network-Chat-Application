@@ -65,7 +65,6 @@ public class Client {
                 } else {
                     out.println(message);
                 }
-                textField.setText("");
             }
         });
     }
@@ -103,8 +102,6 @@ public class Client {
                     	LocalDateTime now = LocalDateTime.now();
                         String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
                         privateMessageArea.append("[" + time + "] " + "Private message from " + sender + " : "  + message + "\n");
-                    } else if (clientID.equals(sender)) {
-                    	return;
                     }
                 }
 
