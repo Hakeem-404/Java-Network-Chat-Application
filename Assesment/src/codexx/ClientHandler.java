@@ -17,7 +17,7 @@ public class ClientHandler implements Runnable, Observer {
     private Server server;
     private String serverAddress;
     private String port; 
-    private boolean isCoordinator;
+    private boolean Coordinator;
     private static Set<String> names = new HashSet<>();
     private static Set<PrintWriter> writers = new HashSet<>();
     private static PrintWriter coordinatorWriter = null;
@@ -37,7 +37,7 @@ public class ClientHandler implements Runnable, Observer {
             out = new PrintWriter(socket.getOutputStream(), true);
 
             synchronized (names) {
-                isCoordinator = coordinatorWriter == null;
+                Coordinator = coordinatorWriter == null;
             }
 
             while (true) {
@@ -55,7 +55,7 @@ public class ClientHandler implements Runnable, Observer {
             }
 
             out.println("NAMEACCEPTED " + name);
-            if (isCoordinator) {
+            if (Coordinator) {
                 coordinatorWriter = out;
                 out.println("MESSAGE You are the coordinator");
                 
@@ -74,7 +74,7 @@ public class ClientHandler implements Runnable, Observer {
                 	out.println("MESSAGE Online members: \n");
                 	for (String onlineMember : names) {
                         if (!onlineMember.equals(name)) {
-                            out.println("MESSAGE" + onlineMember + " IP Address: " + serverAddress + " port: " + port);
+                            out.println("MESSAGE  " + onlineMember + " IP Address: " + serverAddress + " port: " + port);
                         }
                     }
                 } else if (input == null || input.toLowerCase().startsWith("/quit")) {
@@ -82,7 +82,8 @@ public class ClientHandler implements Runnable, Observer {
                 } else if (input.startsWith("PRIVATE")) {
                     String[] parts = input.split(" ", 3);
                     if (parts.length == 3) {
-                        sendPrivateMessage(name, parts[1], parts[2]);
+                    	String pass = name.substring(name.length() - 9, name.length() - 1);
+                        sendPrivateMessage(pass, parts[1], parts[2]);
                     }
                 } else {
                     for (PrintWriter writer : writers) {
@@ -102,7 +103,7 @@ public class ClientHandler implements Runnable, Observer {
                 System.out.println(name + " is leaving");
                 names.remove(name);
 
-                if (isCoordinator) {
+                if (Coordinator) {
                     synchronized (names) {
                         coordinatorWriter = null;
                         if (!writers.isEmpty()) {

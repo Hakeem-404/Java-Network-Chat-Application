@@ -87,7 +87,7 @@ public class Client {
             while (in.hasNextLine()) {
                 String line = in.nextLine();
                 if (line.startsWith("SUBMITNAME")) {
-                    out.println(clientID);
+                    out.println(screenName + " (" + clientID + ")" );
                 } else if (line.startsWith("NAMEACCEPTED")) {
                     frame.setTitle("Name: " + screenName + "  ID: " + clientID);
                     textField.setEditable(true);
