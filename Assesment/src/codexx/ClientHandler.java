@@ -16,8 +16,7 @@ public class ClientHandler implements Runnable, Observer {
     private PrintWriter out;
     private Server server;
     private String serverAddress;
-    private String port; 
-    private boolean Coordinator;
+    private String port;
     private static Set<String> names = new HashSet<>();
     private static Set<PrintWriter> writers = new HashSet<>();
     private static PrintWriter coordinatorWriter = null;
@@ -37,7 +36,10 @@ public class ClientHandler implements Runnable, Observer {
             out = new PrintWriter(socket.getOutputStream(), true);
 
             synchronized (names) {
-                Coordinator = coordinatorWriter == null;
+                if (coordinatorWriter == null) {
+                    coordinatorWriter = out;
+                    out.println("MESSAGE *** You are the coordinator ***");
+                }
             }
 
             while (true) {
@@ -50,29 +52,24 @@ public class ClientHandler implements Runnable, Observer {
                     if (!name.isEmpty() && !names.contains(name)) {
                         names.add(name);
                         break;
-                    } 
+                    }
                 }
             }
 
             out.println("NAMEACCEPTED " + name);
-            if (Coordinator) {
-                coordinatorWriter = out;
-                out.println("MESSAGE You are the coordinator");
-                
-            }
 
             for (PrintWriter writer : writers) {
-            	LocalDateTime now = LocalDateTime.now();
+                LocalDateTime now = LocalDateTime.now();
                 String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
                 writer.println("MESSAGE [" + time + "] " + name + " has joined");
             }
             writers.add(out);
 
-            while (true){
+            while (true) {
                 String input = in.nextLine();
-                if (input.equalsIgnoreCase("members")){
-                	out.println("MESSAGE Online members: \n");
-                	for (String onlineMember : names) {
+                if (input.equalsIgnoreCase("members")) {
+                    out.println("MESSAGE Online members: \n");
+                    for (String onlineMember : names) {
                         if (!onlineMember.equals(name)) {
                             out.println("MESSAGE  " + onlineMember + " IP Address: " + serverAddress + " port: " + port);
                         }
@@ -82,12 +79,12 @@ public class ClientHandler implements Runnable, Observer {
                 } else if (input.startsWith("PRIVATE")) {
                     String[] parts = input.split(" ", 3);
                     if (parts.length == 3) {
-                    	String pass = name.substring(name.length() - 9, name.length() - 1);
+                        String pass = name.substring(name.length() - 9, name.length() - 1);
                         sendPrivateMessage(pass, parts[1], parts[2]);
                     }
                 } else {
                     for (PrintWriter writer : writers) {
-                    	LocalDateTime now = LocalDateTime.now();
+                        LocalDateTime now = LocalDateTime.now();
                         String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
                         writer.println("MESSAGE [" + time + "] " + name + ": " + input);
                     }
@@ -103,21 +100,15 @@ public class ClientHandler implements Runnable, Observer {
                 System.out.println(name + " is leaving");
                 names.remove(name);
 
-                if (Coordinator) {
-                    synchronized (names) {
-                        coordinatorWriter = null;
-                        if (!writers.isEmpty()) {
-                            coordinatorWriter = writers.iterator().next();
-                            coordinatorWriter.println("MESSAGE You are the new coordinator");
-                        }
-                    }
+                if (coordinatorWriter != null && coordinatorWriter.equals(out)) {
+                    reassignCoordinator();
                 }
+
                 // Notify other clients about the leaving client including their name
                 for (PrintWriter writer : writers) {
-                	LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime now = LocalDateTime.now();
                     String time = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
                     writer.println("MESSAGE [" + time + "] " + name + " has left");
-                    
                 }
             }
             try {
@@ -126,6 +117,36 @@ public class ClientHandler implements Runnable, Observer {
             }
             server.unregister(this); // Unregister the client handler from the server
         }
+    }
+
+    private void reassignCoordinator() {
+        synchronized (names) {
+            coordinatorWriter = null;
+            if (!writers.isEmpty()) {
+                for (PrintWriter writer : writers) {
+                    coordinatorWriter = writer;
+                    String newCoordinatorName = getNewCoordinatorName(coordinatorWriter);
+                    coordinatorWriter.println("MESSAGE *** You are the new coordinator ***");
+                    broadcastNewCoordinator(newCoordinatorName);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void broadcastNewCoordinator(String newCoordinatorName) {
+        for (PrintWriter writer : writers) {
+            writer.println("MESSAGE *** The new coordinator is " + newCoordinatorName + " ***");
+        }
+    }
+
+    private String getNewCoordinatorName(PrintWriter writer) {
+        for (String name : names) {
+            if (writers.contains(writer)) {
+                return name;
+            }
+        }
+        return null;
     }
 
     private void sendPrivateMessage(String sender, String recipient, String message) {
