@@ -42,6 +42,4 @@ public class Server implements Subject {
             observer.update(message);
         }
     }
-    
-    
 }
